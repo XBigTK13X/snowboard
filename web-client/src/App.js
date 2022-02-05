@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { UIRouter, UIView, pushStateLocationPlugin } from '@uirouter/react'
 import routes from './routes'
 import Comp from './comp'
+const snowboardApi = require('./snowboard-api-client').default
 
 const plugins = [pushStateLocationPlugin]
 
@@ -13,7 +14,9 @@ export default class App extends Component {
     constructor(props) {
         super(props)
 
-        this.state = {}
+        this.state = {
+            api: snowboardApi,
+        }
     }
 
     componentDidMount() {}
@@ -27,7 +30,7 @@ export default class App extends Component {
                         <br />
                         <UIView
                             render={(Component, props) => {
-                                return <Component {...props} />
+                                return <Component api={this.state.api} {...props} />
                             }}
                         />
                     </div>

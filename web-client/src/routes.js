@@ -3,7 +3,7 @@ import pages from './page'
 const routes = [
     {
         name: 'admin',
-        url: '/',
+        url: '/user/:userName',
         component: pages.Admin,
     },
 ]

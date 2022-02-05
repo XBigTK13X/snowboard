@@ -1,11 +1,10 @@
 import axios from 'axios'
-import settings from '../settings'
+import settings from './settings'
 
 class ApiClient {
     constructor() {
         this.httpClient = axios.create({
             baseURL: settings.webApiUrl,
-            username: null,
         })
     }
 
@@ -15,14 +14,34 @@ class ApiClient {
         })
     }
 
-    updateBoardGameGeek(userName) {
-        return this.httpClient
-            .post(`/board-game-geek/update`, {
-                userName,
-            })
-            .then((response) => {
-                return response.data
-            })
+    post(url, payload) {
+        return this.httpClient.post(url, payload).then((response) => {
+            return response.data
+        })
+    }
+
+    updateCollection(userName) {
+        return this.post(`/board-game-geek/update/collection`, {
+            userName,
+        })
+    }
+
+    updatePlays(userName) {
+        return this.post(`/board-game-geek/update/plays`, {
+            userName,
+        })
+    }
+
+    ingestGames(userName) {
+        return this.post(`/user/games/ingest`, {
+            userName,
+        })
+    }
+
+    ingestPlays(userName) {
+        return this.post(`/user/plays/ingest`, {
+            userName,
+        })
     }
 }
 
