@@ -29,6 +29,8 @@ if (fs.existsSync(webRoot)) {
             WEB_API_URL: settings.webApiUrl,
             DEBOUNCE_MILLISECONDS: 300,
         })
+    } else {
+        util.log('No frontend settings found to token swap')
     }
     util.log(`Hosting static files`)
     app.use('/', express.static(webRoot))

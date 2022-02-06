@@ -1,4 +1,9 @@
 const database = require('./database')
+const settings = require('./settings')
+const util = require('./util')
+const path = require('path')
+const fs = require('fs')
+const mkdirp = require('mkdirp')
 
 const boardGameGeek = require('./board-game-geek')
 
@@ -62,7 +67,6 @@ class BoardGame {
                 players: {},
             }
             for (let pollResult of poll.results) {
-                // TODO Make this an int and handle the 10+
                 this[pollKey].players[pollResult._attributes.numplayers] = {
                     best: parseInt(pollResult.result[0]._attributes.numvotes, 10),
                     recommended: parseInt(pollResult.result[1]._attributes.numvotes, 10),
@@ -71,7 +75,21 @@ class BoardGame {
             }
         }
 
-        // Mechanics / Family
+        this.families = []
+        this.mechanics = []
+        for (let link of bggJson.link) {
+            if (link._attributes.type === 'boardgamemechanic') {
+                this.mechanics.push({
+                    bggId: parseInt(link._attributes.id, 10),
+                    name: link._attributes.value,
+                })
+            } else if (link._attributes.type === 'boardgamefamily') {
+                this.families.push({
+                    bggId: parseInt(link._attributes.id, 10),
+                    name: link._attributes.value,
+                })
+            }
+        }
     }
 }
 
@@ -139,19 +157,52 @@ const ingestPlays = (userName) => {
     })
 }
 
-const ingestGameInfos = (userName) => {
-    return new Promise(async (resolve) => {
-        resolve({})
+const downloadImages = (games, gameIndex) => {
+    return new Promise((resolve) => {
+        if (gameIndex >= games.length) {
+            console.log('Finished downloading game images')
+            return resolve()
+        }
+        resolve()
+        const game = games[gameIndex]
+        const thumbnailPath = path.join(settings.databaseDirectory, `bgg/images/thumbnail/${game.bgg.thingId}${path.extname(game.bgg.thumbnailUrl)}`)
+        const coverPath = path.join(settings.databaseDirectory, `bgg/images/cover/${game.bgg.thingId}${path.extname(game.bgg.coverUrl)}`)
+        const thumbnailExists = fs.existsSync(thumbnailPath)
+        const coverExists = fs.existsSync(coverPath)
+        if (coverExists && thumbnailExists) {
+            return downloadImages(games, gameIndex + 1)
+        }
+        setTimeout(() => {
+            let thumbnailPromise = thumbnailExists ? Promise.resolve() : util.downloadFile(game.bgg.thumbnailUrl, thumbnailPath)
+            thumbnailPromise.then(() => {
+                let coverPromise = coverExists ? Promise.resolve() : util.downloadFile(game.bgg.coverUrl, coverPath)
+                coverPromise.then(() => {
+                    downloadImages(games, gameIndex + 1)
+                })
+            })
+        }, settings.externalHTTPThrottleMilliseconds)
     })
 }
 
 const ingestGameImages = (userName) => {
     return new Promise(async (resolve) => {
-        resolve({})
+        resolve()
+        const db = database.getInstance(`user/${userName}/games`)
+        const games = await db.read()
+        const thumbnailDir = path.join(settings.databaseDirectory, `bgg/images/thumbnail/`)
+        const coverDir = path.join(settings.databaseDirectory, `bgg/images/cover/`)
+        if (!fs.existsSync(thumbnailDir)) {
+            mkdirp.sync(thumbnailDir)
+        }
+        if (!fs.existsSync(coverDir)) {
+            mkdirp.sync(coverDir)
+        }
+        downloadImages(games.games, 0)
     })
 }
 
 module.exports = {
     ingestGames,
     ingestPlays,
+    ingestGameImages,
 }

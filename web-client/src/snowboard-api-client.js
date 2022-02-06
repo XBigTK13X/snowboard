@@ -49,6 +49,12 @@ class ApiClient {
             userName,
         })
     }
+
+    ingestGameImages(userName) {
+        return this.post(`/user/images/ingest`, {
+            userName,
+        })
+    }
 }
 
 let instance

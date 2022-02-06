@@ -13,6 +13,7 @@ export default class Admin extends Component {
         this.updateGameDetails = this.updateGameDetails.bind(this)
         this.ingestGames = this.ingestGames.bind(this)
         this.ingestPlays = this.ingestPlays.bind(this)
+        this.ingestGameImages = this.ingestGameImages.bind(this)
     }
     updateCollection() {
         this.props.api.updateCollection(this.state.userName)
@@ -28,6 +29,9 @@ export default class Admin extends Component {
     }
     ingestPlays() {
         this.props.api.ingestPlays(this.state.userName)
+    }
+    ingestGameImages() {
+        this.props.api.ingestGameImages(this.state.userName)
     }
     render() {
         return (
@@ -45,6 +49,8 @@ export default class Admin extends Component {
                 <button onClick={this.ingestGames}>Ingest Games</button>
                 <br />
                 <button onClick={this.ingestPlays}>Ingest Plays</button>
+                <br />
+                <button onClick={this.ingestGameImages}>Ingest Game Images</button>
             </div>
         )
     }

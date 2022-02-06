@@ -5,7 +5,8 @@ const getFrontendSettingsPath = (root) => {
     const entries = fs.readdirSync(root)
     for (var ii = 0; ii < entries.length; ii++) {
         const entry = entries[ii]
-        if (entry.indexOf('main') !== -1 && entry.indexOf('chunk.js') !== -1 && entry.indexOf('.map') === -1) {
+        console.log(entry)
+        if (entry.indexOf('main') !== -1 && entry.indexOf('.map') === -1) {
             return path.join(root, entry)
         }
     }

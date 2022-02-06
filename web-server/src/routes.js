@@ -22,6 +22,10 @@ const register = (router) => {
         let result = await boardGames.ingestPlays(request.body.userName)
         response.send(result)
     })
+    router.post('/api/user/images/ingest', async (request, response) => {
+        let result = await boardGames.ingestGameImages(request.body.userName)
+        response.send(result)
+    })
 }
 
 module.exports = {
