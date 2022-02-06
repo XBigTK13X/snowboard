@@ -22,6 +22,13 @@ const StatusFlagNames = Object.keys(StatusFlag)
 const pollKeys = {
     suggested_numplayers: 'suggestedPlayerCounts',
 }
+let imageLookup
+if (!imageLookup) {
+    imageLookup = {
+        thumbnail: {},
+        cover: {},
+    }
+}
 
 class BoardGame {
     constructor(bggJson) {
@@ -165,13 +172,13 @@ const downloadImages = (games, gameIndex) => {
         }
         resolve()
         const game = games[gameIndex]
-        const thumbnailPath = path.join(settings.databaseDirectory, `bgg/images/thumbnail/${game.bgg.thingId}${path.extname(game.bgg.thumbnailUrl)}`)
-        const coverPath = path.join(settings.databaseDirectory, `bgg/images/cover/${game.bgg.thingId}${path.extname(game.bgg.coverUrl)}`)
-        const thumbnailExists = fs.existsSync(thumbnailPath)
-        const coverExists = fs.existsSync(coverPath)
+        const thumbnailExists = !!imageLookup.thumbnail[game.bgg.thingId]
+        const coverExists = imageLookup.cover[game.bgg.thingId]
         if (coverExists && thumbnailExists) {
             return downloadImages(games, gameIndex + 1)
         }
+        const thumbnailPath = path.join(settings.databaseDirectory, `bgg/images/thumbnail/${game.bgg.thingId}${path.extname(game.bgg.thumbnailUrl)}`)
+        const coverPath = path.join(settings.databaseDirectory, `bgg/images/cover/${game.bgg.thingId}${path.extname(game.bgg.coverUrl)}`)
         setTimeout(() => {
             let thumbnailPromise = thumbnailExists ? Promise.resolve() : util.downloadFile(game.bgg.thumbnailUrl, thumbnailPath)
             thumbnailPromise.then(() => {
@@ -189,15 +196,43 @@ const ingestGameImages = (userName) => {
         resolve()
         const db = database.getInstance(`user/${userName}/games`)
         const games = await db.read()
-        const thumbnailDir = path.join(settings.databaseDirectory, `bgg/images/thumbnail/`)
-        const coverDir = path.join(settings.databaseDirectory, `bgg/images/cover/`)
-        if (!fs.existsSync(thumbnailDir)) {
-            mkdirp.sync(thumbnailDir)
-        }
-        if (!fs.existsSync(coverDir)) {
-            mkdirp.sync(coverDir)
-        }
         downloadImages(games.games, 0)
+    })
+}
+
+const buildImageLookup = () => {
+    const thumbnailDir = path.join(settings.databaseDirectory, `bgg/images/thumbnail/`)
+    const coverDir = path.join(settings.databaseDirectory, `bgg/images/cover/`)
+    if (!fs.existsSync(thumbnailDir)) {
+        mkdirp.sync(thumbnailDir)
+    } else {
+        const entries = fs.readdirSync(thumbnailDir)
+        for (let entry of entries) {
+            imageLookup.thumbnail[parseInt(entry.split('.')[0], 10)] = entry
+        }
+    }
+    if (!fs.existsSync(coverDir)) {
+        mkdirp.sync(coverDir)
+    } else {
+        const entries = fs.readdirSync(coverDir)
+        for (let entry of entries) {
+            imageLookup.cover[parseInt(entry.split('.')[0], 10)] = entry
+        }
+    }
+}
+
+const getCollection = (userName) => {
+    return new Promise(async (resolve) => {
+        const db = database.getInstance(`user/${userName}/games`)
+        const games = await db.read()
+        let results = []
+        for (let game of games.games) {
+            let result = { ...game }
+            result.coverUrl = `${settings.webServerUrl}asset/bgg-image/cover/${imageLookup.cover[game.bgg.thingId]}`
+            result.thumbnailUrl = `${settings.webServerUrl}asset/bgg-image/thumbnail/${imageLookup.thumbnail[game.bgg.thingId]}`
+            results.push(result)
+        }
+        resolve({ collection: results })
     })
 }
 
@@ -205,4 +240,6 @@ module.exports = {
     ingestGames,
     ingestPlays,
     ingestGameImages,
+    buildImageLookup,
+    getCollection,
 }

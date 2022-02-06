@@ -26,6 +26,11 @@ const register = (router) => {
         let result = await boardGames.ingestGameImages(request.body.userName)
         response.send(result)
     })
+
+    router.get('/api/user/collection', async (request, response) => {
+        let result = await boardGames.getCollection(request.query.userName)
+        response.send(result)
+    })
 }
 
 module.exports = {

@@ -2,8 +2,13 @@ import pages from './page'
 
 const routes = [
     {
+        name: 'collection',
+        url: '/collection/:userName',
+        component: pages.Collection,
+    },
+    {
         name: 'admin',
-        url: '/user/:userName',
+        url: '/admin/:userName',
         component: pages.Admin,
     },
 ]

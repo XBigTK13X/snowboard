@@ -9,14 +9,19 @@ const express = require('express')
 const cors = require('cors')
 const compression = require('compression')
 
+const boardGames = require('./board-games')
+boardGames.buildImageLookup()
+
 const app = express()
 app.use(cors())
 app.use(compression())
 app.use(express.json({ limit: settings.apiPostBodySizeLimit }))
-
 const routes = require('./routes')
-
 routes.register(app)
+
+util.log('Hosting cached bgg images')
+const imageRoot = path.join(settings.databaseDirectory, 'bgg', 'images')
+app.use('/asset/bgg-image/', express.static(imageRoot))
 
 const webRoot = path.join(__dirname, 'web-build')
 if (fs.existsSync(webRoot)) {
@@ -32,7 +37,7 @@ if (fs.existsSync(webRoot)) {
     } else {
         util.log('No frontend settings found to token swap')
     }
-    util.log(`Hosting static files`)
+    util.log(`Hosting built web frontend files`)
     app.use('/', express.static(webRoot))
     app.use('/*', (request, response) => {
         response.sendFile(path.join(webRoot, 'index.html'))

@@ -55,6 +55,10 @@ class ApiClient {
             userName,
         })
     }
+
+    getCollection(userName) {
+        return this.get(`/user/collection?userName=${userName}`)
+    }
 }
 
 let instance
