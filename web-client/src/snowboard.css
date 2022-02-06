@@ -3,3 +3,17 @@ button {
     width: 15vw;
     height: 7vw;
 }
+
+div.game-thumbnail {
+    width: 10em;
+    height: 10em;
+    display: inline-block;
+    border: 2px solid #c7c7c7;
+    margin: 1em 1em;
+}
+
+img.game-thumbnail {
+    width: 8em;
+    height: 8em;
+    margin: 1em 1em;
+}

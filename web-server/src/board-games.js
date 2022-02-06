@@ -221,12 +221,22 @@ const buildImageLookup = () => {
     }
 }
 
-const getCollection = (userName) => {
+const getCollection = (userName, filters) => {
     return new Promise(async (resolve) => {
         const db = database.getInstance(`user/${userName}/games`)
         const games = await db.read()
         let results = []
         for (let game of games.games) {
+            if (game.isExpansion) {
+                if (!filters || !filters.showExpansions) {
+                    continue
+                }
+            }
+            if (!(game.statusFlag & StatusFlag.own)) {
+                if (!filters || !filters.gameStatus & StatusFlag.own) {
+                    continue
+                }
+            }
             let result = { ...game }
             result.coverUrl = `${settings.webServerUrl}asset/bgg-image/cover/${imageLookup.cover[game.bgg.thingId]}`
             result.thumbnailUrl = `${settings.webServerUrl}asset/bgg-image/thumbnail/${imageLookup.thumbnail[game.bgg.thingId]}`

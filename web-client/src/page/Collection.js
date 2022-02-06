@@ -29,8 +29,8 @@ export default class Collection extends Component {
             <div>
                 {this.state.collection.map((game) => {
                     return (
-                        <div key={game.bgg.thingId}>
-                            <img src={game.thumbnailUrl} alt="thumbnail" />
+                        <div className="game-thumbnail" key={game.bgg.thingId}>
+                            <img className="game-thumbnail" src={game.thumbnailUrl} alt="thumbnail" />
                         </div>
                     )
                 })}
