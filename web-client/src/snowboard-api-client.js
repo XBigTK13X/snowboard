@@ -32,6 +32,12 @@ class ApiClient {
         })
     }
 
+    updateGameDetails(userName) {
+        return this.post(`/board-game-geek/update/game-details`, {
+            userName,
+        })
+    }
+
     ingestGames(userName) {
         return this.post(`/user/games/ingest`, {
             userName,

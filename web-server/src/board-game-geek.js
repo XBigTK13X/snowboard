@@ -49,26 +49,6 @@ const updateCollection = (userName) => {
     })
 }
 
-const getAllGames = (userName) => {
-    return new Promise(async (resolve) => {
-        const gamesDb = getCollectionDatabase(userName, false)
-        const expansionsDb = getCollectionDatabase(userName, true)
-        resolve({
-            games: await gamesDb.read(),
-            expansions: await expansionsDb.read(),
-        })
-    })
-}
-
-const getAllPlays = (userName) => {
-    return new Promise(async (resolve) => {
-        const db = database.getInstance(`bgg/user/${userName}/plays`)
-        resolve({
-            plays: await db.read(),
-        })
-    })
-}
-
 const updatePlays = (userName) => {
     return new Promise(async (resolve) => {
         const db = database.getInstance(`bgg/user/${userName}/plays`)
@@ -83,9 +63,49 @@ const updatePlays = (userName) => {
     })
 }
 
+const updateGameDetails = (userName) => {
+    return new Promise(async (resolve) => {
+        const db = database.getInstance(`bgg/user/${userName}/game-details`)
+        const games = await getAllGames(userName)
+        const gameIds = games.games.items.item
+            .map((x) => {
+                return x._attributes.objectid
+            })
+            .join(',')
+        const url = `thing?id=${gameIds}&stats=1&versions=0&videos=0&historical=0&marketplace=0&comments=0&ratingcomments=0`
+        const response = await client.get(url)
+        if (response.status !== 200) {
+            return resolve({ response })
+        }
+        const gameDetails = responseToJson(response)
+        await db.write(gameDetails)
+        resolve(gameDetails)
+    })
+}
+
+const getAllGames = (userName) => {
+    return new Promise(async (resolve) => {
+        resolve({
+            games: await getCollectionDatabase(userName, false).read(),
+            expansions: await getCollectionDatabase(userName, true).read(),
+            details: await database.getInstance(`bgg/user/${userName}/game-details`).read(),
+        })
+    })
+}
+
+const getAllPlays = (userName) => {
+    return new Promise(async (resolve) => {
+        const db = database.getInstance(`bgg/user/${userName}/plays`)
+        resolve({
+            plays: await db.read(),
+        })
+    })
+}
+
 module.exports = {
     updateCollection,
     updatePlays,
+    updateGameDetails,
     getAllGames,
     getAllPlays,
 }

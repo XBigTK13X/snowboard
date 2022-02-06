@@ -10,6 +10,7 @@ export default class Admin extends Component {
 
         this.updateCollection = this.updateCollection.bind(this)
         this.updatePlays = this.updatePlays.bind(this)
+        this.updateGameDetails = this.updateGameDetails.bind(this)
         this.ingestGames = this.ingestGames.bind(this)
         this.ingestPlays = this.ingestPlays.bind(this)
     }
@@ -18,6 +19,9 @@ export default class Admin extends Component {
     }
     updatePlays() {
         this.props.api.updatePlays(this.state.userName)
+    }
+    updateGameDetails() {
+        this.props.api.updateGameDetails(this.state.userName)
     }
     ingestGames() {
         this.props.api.ingestGames(this.state.userName)
@@ -30,10 +34,14 @@ export default class Admin extends Component {
             <div>
                 <p>Welcome to Snowboard!</p>
                 <br />
+                <h3>Board Game Geek - Cache Generation</h3>
                 <button onClick={this.updateCollection}>Update Collection</button>
                 <br />
                 <button onClick={this.updatePlays}>Update Plays</button>
                 <br />
+                <button onClick={this.updateGameDetails}>Update Game Details</button>
+                <br />
+                <h3>Snowboard - Board Game Geek Data Transform</h3>
                 <button onClick={this.ingestGames}>Ingest Games</button>
                 <br />
                 <button onClick={this.ingestPlays}>Ingest Plays</button>

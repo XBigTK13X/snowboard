@@ -10,6 +10,10 @@ const register = (router) => {
         let result = await boardGameGeek.updatePlays(request.body.userName)
         response.send(result)
     })
+    router.post('/api/board-game-geek/update/game-details', async (request, response) => {
+        let result = await boardGameGeek.updateGameDetails(request.body.userName)
+        response.send(result)
+    })
     router.post('/api/user/games/ingest', async (request, response) => {
         let result = await boardGames.ingestGames(request.body.userName)
         response.send(result)

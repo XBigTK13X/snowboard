@@ -14,11 +14,15 @@ const StatusFlag = {
 }
 const StatusFlagNames = Object.keys(StatusFlag)
 
+const pollKeys = {
+    suggested_numplayers: 'suggestedPlayerCounts',
+}
+
 class BoardGame {
     constructor(bggJson) {
         this.bgg = {
-            objectId: parseInt(bggJson._attributes.objectid, 10),
-            collid: parseInt(bggJson._attributes.collid, 10),
+            thingId: parseInt(bggJson._attributes.objectid, 10),
+            collectionId: parseInt(bggJson._attributes.collid, 10),
             thumbnailUrl: bggJson.thumbnail._text,
             coverUrl: bggJson.image._text,
         }
@@ -35,6 +39,40 @@ class BoardGame {
         }
         this.isExpansion = bggJson._attributes.subtype === 'boardgameexpansion'
     }
+
+    parseDetails(bggJson) {
+        this.description = bggJson.description._text
+        this.minAge = parseInt(bggJson.minage._attributes.value, 10)
+        this.minPlayers = parseInt(bggJson.minplayers._attributes.value, 10)
+        this.maxPlayers = parseInt(bggJson.maxplayers._attributes.value, 10)
+        this.minPlayTimeMinutes = parseInt(bggJson.minplaytime._attributes.value, 10)
+        this.maxPlayTimeMinutes = parseInt(bggJson.maxplaytime._attributes.value, 10)
+        this.playTimeMinutes = parseInt(bggJson.playingtime._attributes.value, 10)
+        this.averageWeight = parseInt(bggJson.statistics.ratings.averageweight._attributes.value, 10)
+        this.weightRatings = parseInt(bggJson.statistics.ratings.numweights, 10)
+
+        for (let poll of bggJson.poll) {
+            let pollKey = pollKeys[poll._attributes.name]
+            if (!pollKey) {
+                continue
+            }
+            this[pollKey] = {
+                title: poll._attributes.title,
+                totalVotes: poll._attributes.totalvotes,
+                players: {},
+            }
+            for (let pollResult of poll.results) {
+                // TODO Make this an int and handle the 10+
+                this[pollKey].players[pollResult._attributes.numplayers] = {
+                    best: parseInt(pollResult.result[0]._attributes.numvotes, 10),
+                    recommended: parseInt(pollResult.result[1]._attributes.numvotes, 10),
+                    avoid: parseInt(pollResult.result[2]._attributes.numvotes, 10),
+                }
+            }
+        }
+
+        // Mechanics / Family
+    }
 }
 
 class PlayerRecord {
@@ -48,7 +86,7 @@ class PlayerRecord {
 class PlayRecord {
     constructor(bggJson) {
         this.bgg = {
-            id: bggJson._attributes.id,
+            thingId: bggJson._attributes.id,
             gameId: bggJson.item._attributes.objectid,
         }
         this.location = bggJson._attributes.location
@@ -69,9 +107,17 @@ class PlayRecord {
 const ingestGames = (userName) => {
     return new Promise(async (resolve) => {
         let bggCollection = await boardGameGeek.getAllGames(userName)
+        let detailsLookup = {}
+        for (let detail of bggCollection.details.items.item) {
+            detailsLookup[parseInt(detail._attributes.id)] = detail
+        }
         let games = []
         for (let game of bggCollection.games.items.item) {
-            games.push(new BoardGame(game))
+            let boardGame = new BoardGame(game)
+            if (detailsLookup[boardGame.bgg.thingId]) {
+                boardGame.parseDetails(detailsLookup[boardGame.bgg.thingId])
+            }
+            games.push(boardGame)
         }
         for (let game of bggCollection.expansions.items.item) {
             games.push(new BoardGame(game))
