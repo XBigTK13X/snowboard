@@ -11,6 +11,11 @@ const routes = [
         url: '/admin/:userName',
         component: pages.Admin,
     },
+    {
+        name: 'game',
+        url: '/game/:gameId/:userName',
+        component: pages.Game,
+    },
 ]
 
 for (let route of routes) {

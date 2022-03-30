@@ -2,6 +2,7 @@ button {
     margin: 1em 1em;
     width: 15vw;
     height: 7vw;
+    cursor: pointer;
 }
 
 div.game-thumbnail {
@@ -16,4 +17,11 @@ img.game-thumbnail {
     width: 8em;
     height: 8em;
     margin: 1em 1em;
+    cursor: pointer;
+}
+
+div.game-title {
+    overflow: hidden;
+    height: 4em;
+    text-align: center;
 }

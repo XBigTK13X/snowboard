@@ -7,6 +7,10 @@ const actionLinks = [
         text: 'Admin',
         to: 'admin',
     },
+    {
+        text: 'Collection',
+        to: 'collection',
+    },
 ]
 
 export default class NavBar extends Component {
@@ -14,7 +18,9 @@ export default class NavBar extends Component {
         return (
             <div>
                 {actionLinks.map((link, linkIndex) => {
-                    return <Comp.LinkTile key={linkIndex} to={link.to} text={link.text} params={link.params} />
+                    //TODO Fix this by using state params or something
+                    let params = { userName: 'xbigtk13x' }
+                    return <Comp.LinkTile key={linkIndex} to={link.to} text={link.text} params={params} />
                 })}
             </div>
         )

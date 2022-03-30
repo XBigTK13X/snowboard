@@ -59,6 +59,14 @@ class ApiClient {
     getCollection(userName) {
         return this.get(`/user/collection?userName=${userName}`)
     }
+
+    getGame(gameId, userName) {
+        return this.get(`/user/game?gameId=${gameId}&userName=${userName}`)
+    }
+
+    toggleGameHidden(gameId, userName) {
+        return this.post(`/user/game/hidden/toggle?gameId=${gameId}&userName=${userName}`)
+    }
 }
 
 let instance

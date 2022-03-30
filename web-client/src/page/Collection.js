@@ -1,5 +1,7 @@
 import React, { Component } from 'react'
 
+import Comp from '../comp'
+
 export default class Collection extends Component {
     constructor(props) {
         super(props)
@@ -30,7 +32,12 @@ export default class Collection extends Component {
                 {this.state.collection.map((game) => {
                     return (
                         <div className="game-thumbnail" key={game.bgg.thingId}>
-                            <img className="game-thumbnail" src={game.thumbnailUrl} alt="thumbnail" />
+                            <Comp.Href to="game" params={{ userName: this.state.userName, gameId: game.bgg.thingId }}>
+                                <img className="game-thumbnail" src={game.thumbnailUrl} alt="thumbnail" />
+                            </Comp.Href>
+                            <div className="game-title">
+                                <p>{game.name}</p>
+                            </div>
                         </div>
                     )
                 })}

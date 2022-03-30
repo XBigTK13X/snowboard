@@ -6,7 +6,7 @@
   "scripts": {
     "format-all": "prettier --write 'web-{server,client}/src/**/*.{js,html,css}'",
     "develop": "concurrently 'cd web-server && nodemon ./src/index.js --ignore ./src/web-build' 'cd web-client && npm start'",
-    "debug": "DEBUG=express:* npm run develop"
+    "debug": "cross-env DEBUG=express:* npm run develop"
   },
   "author": "",
   "license": "MIT",

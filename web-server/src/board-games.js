@@ -38,6 +38,7 @@ class BoardGame {
             thumbnailUrl: bggJson.thumbnail._text,
             coverUrl: bggJson.image._text,
         }
+        this.metadataKey = '' + this.bgg.thingId
         this.name = bggJson.name._text
         this.yearPublished = parseInt(bggJson.yearpublished._text, 10)
         this.statusFlag = 0
@@ -136,12 +137,14 @@ const ingestGames = (userName) => {
         for (let detail of bggCollection.details.items.item) {
             detailsLookup[parseInt(detail._attributes.id)] = detail
         }
+        let rankings = await database.getInstance(`user/${userName}/rankings`).read()
         let games = []
         for (let game of bggCollection.games.items.item) {
             let boardGame = new BoardGame(game)
             if (detailsLookup[boardGame.bgg.thingId]) {
                 boardGame.parseDetails(detailsLookup[boardGame.bgg.thingId])
             }
+            boardGame.rankings = rankings[boardGame.name]
             games.push(boardGame)
         }
         for (let game of bggCollection.expansions.items.item) {
@@ -225,6 +228,7 @@ const getCollection = (userName, filters) => {
     return new Promise(async (resolve) => {
         const db = database.getInstance(`user/${userName}/games`)
         const games = await db.read()
+        const metadata = await database.getInstance(`user/${userName}/metadata`).read()
         let results = []
         for (let game of games.games) {
             if (game.isExpansion) {
@@ -240,10 +244,57 @@ const getCollection = (userName, filters) => {
             let result = { ...game }
             result.coverUrl = `${settings.webServerUrl}asset/bgg-image/cover/${imageLookup.cover[game.bgg.thingId]}`
             result.thumbnailUrl = `${settings.webServerUrl}asset/bgg-image/thumbnail/${imageLookup.thumbnail[game.bgg.thingId]}`
-            results.push(result)
+            if (metadata.lookup && metadata.lookup[game.metadataKey]) {
+                result.metadata = metadata.lookup[game.metadataKey]
+            } else {
+                result.metadata = {}
+            }
+            if (!result.metadata.isHidden) {
+                results.push(result)
+            }
         }
         resolve({ collection: results })
     })
+}
+
+const getGame = async (gameId, userName) => {
+    gameId = parseInt(gameId, 10)
+    const db = database.getInstance(`user/${userName}/games`)
+    const games = await db.read()
+    const metadata = await database.getInstance(`user/${userName}/metadata`).read()
+    for (let game of games.games) {
+        if (game.bgg.thingId === gameId) {
+            game.coverUrl = `${settings.webServerUrl}asset/bgg-image/cover/${imageLookup.cover[game.bgg.thingId]}`
+            game.thumbnailUrl = `${settings.webServerUrl}asset/bgg-image/thumbnail/${imageLookup.thumbnail[game.bgg.thingId]}`
+            if (metadata.lookup && metadata.lookup[game.metadataKey]) {
+                game.metadata = metadata.lookup[game.metadataKey]
+            } else {
+                game.metadata = {}
+            }
+            return { game }
+        }
+    }
+    return { game: null }
+}
+
+const toggleHidden = async (gameId, userName) => {
+    gameId = parseInt(gameId, 10)
+    const db = database.getInstance(`user/${userName}/metadata`)
+    const metadata = await db.read()
+    if (!metadata.lookup) {
+        metadata.lookup = {}
+    }
+    if (!metadata.lookup[gameId]) {
+        metadata.lookup[gameId] = {}
+    }
+    if (!metadata.lookup[gameId].isHidden) {
+        metadata.lookup[gameId].isHidden = true
+    } else {
+        metadata.lookup[gameId].isHidden = false
+    }
+    let result = { gameHidden: metadata.lookup[gameId].isHidden }
+    await db.write(metadata)
+    return result
 }
 
 module.exports = {
@@ -252,4 +303,6 @@ module.exports = {
     ingestGameImages,
     buildImageLookup,
     getCollection,
+    getGame,
+    toggleHidden,
 }
