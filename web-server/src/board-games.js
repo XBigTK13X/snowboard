@@ -35,8 +35,8 @@ class BoardGame {
         this.bgg = {
             thingId: parseInt(bggJson._attributes.objectid, 10),
             collectionId: parseInt(bggJson._attributes.collid, 10),
-            thumbnailUrl: bggJson.thumbnail._text,
-            coverUrl: bggJson.image._text,
+            thumbnailUrl: bggJson.thumbnail ? bggJson.thumbnail._text : null,
+            coverUrl: bggJson.image ? bggJson.image._text : null,
         }
         this.metadataKey = '' + this.bgg.thingId
         this.name = bggJson.name._text
@@ -183,9 +183,15 @@ const downloadImages = (games, gameIndex) => {
         const thumbnailPath = path.join(settings.databaseDirectory, `bgg/images/thumbnail/${game.bgg.thingId}${path.extname(game.bgg.thumbnailUrl)}`)
         const coverPath = path.join(settings.databaseDirectory, `bgg/images/cover/${game.bgg.thingId}${path.extname(game.bgg.coverUrl)}`)
         setTimeout(() => {
-            let thumbnailPromise = thumbnailExists ? Promise.resolve() : util.downloadFile(game.bgg.thumbnailUrl, thumbnailPath)
+            let thumbnailPromise = Promise.resolve()
+            if (!thumbnailExists && game.bgg.thumbnailUrl !== null) {
+                thumbnailPromise = util.downloadFile(game.bgg.thumbnailUrl, thumbnailPath)
+            }
             thumbnailPromise.then(() => {
-                let coverPromise = coverExists ? Promise.resolve() : util.downloadFile(game.bgg.coverUrl, coverPath)
+                let coverPromise = Promise.resolve()
+                if (!coverExists && game.bgg.coverUrl !== null) {
+                    util.downloadFile(game.bgg.coverUrl, coverPath)
+                }
                 coverPromise.then(() => {
                     downloadImages(games, gameIndex + 1)
                 })
